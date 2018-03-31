@@ -17,55 +17,6 @@ struct THONGTINSINHVIEN
 	wchar_t Hobby2[31];
 };
 
-void ReadFile(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int n)
-{
-	for (int i = 0; i < n; i++)
-	{
-		fwscanf(FileIn, L"%[^,],%[^,],%[^,],", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty);
-		  fseek(FileIn, 1L, SEEK_CUR);
-		fwscanf(FileIn, L"%d", &SINHVIEN[i].SchoolYear);
-		  fseek(FileIn, 1L, SEEK_CUR);
-		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,],%[^']", SINHVIEN[i].BirthDay,SINHVIEN[i].Image,SINHVIEN[i].Describe,SINHVIEN[i].Hobby1,SINHVIEN[i].Hobby2);
-		  fseek(FileIn, 1L, SEEK_CUR);
-	}
-}
-int main()
-{
-	THONGTINSINHVIEN *SINHVIEN = new THONGTINSINHVIEN[10];
-	int n = 10;
-	FILE *FileIn;
-	FileIn = fopen("FileCSV.csv", "r");
-	if (!FileIn)
-	{
-		printf("Khong the tim thay file\n");
-		_getch();
-		return 0;
-	}
-	ReadFile(FileIn, SINHVIEN, n);
-	fclose(FileIn);
-	for (int i = 0; i < 10; i++)
-	{
-		wprintf(L"%ls \t %ls \t %ls \t %d \t %ls \t %ls \t %ls \t %ls \t %ls\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1,SINHVIEN[i].Hobby2);
-	}
-	FILE *FileOut;#define _CRT_SECURE_NO_WARNINGS
-#include <stdio.h>
-#include <conio.h>
-#include <malloc.h>
-#include <string.h>
-
-struct THONGTINSINHVIEN
-{
-	wchar_t ID[11];
-	wchar_t Name[31];
-	wchar_t Faculty[31];
-	int SchoolYear;
-	wchar_t BirthDay[11];
-	wchar_t Image[31];
-	wchar_t Describe[1001];
-	wchar_t Hobby1[31];
-	wchar_t Hobby2[31];
-};
-
 struct HTML
 {
 	wchar_t DOCTYPE1[123] = L"<!DOCTYPE html PUBLIC \" -//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
@@ -130,16 +81,6 @@ int main()
 		fwprintf(FileOut, L"\n");
 	}
 	fclose(FileOut);*/
-	_getch();
-	return 0;
-}
-	FileOut = fopen("FileOut.html", "w");
-	for (int i = 0; i < 10; i++)
-	{
-		fwprintf(FileOut,L"%ls \t %ls \t %ls \t %d \t %ls \t %ls \t %ls \t %ls \t %ls\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1, SINHVIEN[i].Hobby2);
-		fwprintf(FileOut, L"\n");
-	}
-	fclose(FileOut);
 	_getch();
 	return 0;
 }
