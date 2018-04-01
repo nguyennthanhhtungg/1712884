@@ -1,4 +1,4 @@
-#define _CRT_SECURE_NO_WARNINGS
+﻿#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <conio.h>
 #include <malloc.h>
@@ -11,20 +11,53 @@ struct THONGTINSINHVIEN
 	wchar_t Faculty[31];
 	int SchoolYear;
 	wchar_t BirthDay[11];
+	wchar_t Email[31];
 	wchar_t Image[31];
 	wchar_t Describe[1001];
 	wchar_t Hobby1[31];
 	wchar_t Hobby2[31];
 };
 
-struct HTML
+struct HTML  //Khai báo kiểu dữ liệu HTML
 {
-	wchar_t DOCTYPE1[123] = L"<!DOCTYPE html PUBLIC \" -//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">";
-	wchar_t DOCTYPE2[44] = L"<html xmlns=\"http://www.w3.org/1999/xhtml\">";
+	wchar_t DOCTYPE[196] = L"<!DOCTYPE html PUBLIC \" -//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">";
+	wchar_t html[8] = L"</html>";
 	wchar_t Title[8] = L"<title>";
+	wchar_t FullName[33] = L"<span class=\"Personal_FullName\">";
+	wchar_t Department[34] = L"<div class=\"Personal_Department\">";
+	wchar_t Phone[29] = L"<div class=\"Personal_Phone\">";
+	wchar_t TextName[16] = L"n: <";
+	wchar_t TextID[12] = L"<li>MSSV: <";
+	wchar_t TextFaculty[20] = L" khoa <";
+	wchar_t TextBirthday[16] = L"sinh: <";
+	wchar_t TextEmail[6] = L"<li> ";
+	wchar_t TextHobby1[7] = L"<li>1.";
+	wchar_t TextHobby2[7] = L"<li>2.";
+	wchar_t Description[26] = L"<div class=\"Description\">";
+	wchar_t Title1[8] = L"MSSV - ";
 };
 
-void ReadFileCSV(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int n)
+void InsertSubString(wchar_t *str, wchar_t *substr, int startPos)  //Chèn chuổi con vào chuổi cha
+{
+	int length = wcslen(str);
+	int sublength = wcslen(substr);
+	wchar_t *temp;
+	if (startPos > length)
+	{
+		startPos = length;
+	}
+	if (startPos < length)
+	{
+		temp = new wchar_t[length - startPos + 1];
+		wcscpy(temp, str + startPos);
+		wcscpy(str + startPos, substr);
+		wcscpy(str + startPos + sublength, temp);
+		delete[] temp;
+	}
+	else wcscpy(str + startPos, substr);
+}
+
+void ReadFileCSV(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int n)  //Đọc FILE CSV
 {
 	for (int i = 0; i < n; i++)
 	{
@@ -32,18 +65,99 @@ void ReadFileCSV(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int n)
 		fseek(FileIn, 1L, SEEK_CUR);
 		fwscanf(FileIn, L"%d", &SINHVIEN[i].SchoolYear);
 		fseek(FileIn, 1L, SEEK_CUR);
-		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,]", SINHVIEN[i].BirthDay,SINHVIEN[i].Image,SINHVIEN[i].Describe,SINHVIEN[i].Hobby1);
+		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,],%[^,]", SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image,SINHVIEN[i].Describe,SINHVIEN[i].Hobby1);
 		fseek(FileIn, 1L, SEEK_CUR);
 		fgetws(SINHVIEN[i].Hobby2, 31, FileIn);
 	}
 }
 
-void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *SINHVIEN,HTML html)
+void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *SINHVIEN,HTML html)  //ĐỌC và GHI FILE HTML
 {
-	FILE *FileOut;
-	FileOut = fopen("1712884.html", "w");
-	fwprintf(FileOut, L"%ls \n %ls \n", html.DOCTYPE1,html.DOCTYPE2);
+	for (int i = 0; i < 10; i++)
+	{
+		FILE *FileOut;
+		//FILE* fout = _wfopen(L"userinfo-c.txt", L"w, ccs=UTF-8");
+		FileOut = fopen("file.html", "w");
+		fwprintf(FileOut, L"%ls \n", html.DOCTYPE);
+		wchar_t S[1001];
+		while (!feof(FileTemplate))
+		{
+			fgetws(S, 1001, FileTemplate);
+			if (wcsstr(S, html.Title) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->Name, 9);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.FullName) != NULL)
+			{
+				_wcsupr(SINHVIEN->Name);
+				InsertSubString(S, SINHVIEN->Name, 33);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.Department) != NULL)
+			{
+				_wcsupr(SINHVIEN->Faculty);
+				InsertSubString(S, SINHVIEN->Faculty, 34);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.Phone) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->Email, 34);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.TextName) != NULL)
+			{
+				_wcslwr(SINHVIEN->Name);
+				InsertSubString(S, SINHVIEN->Name, 27);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.TextID) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->ID, 18);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.TextFaculty) != NULL)
+			{
+				_wcslwr(SINHVIEN->Faculty);
+				InsertSubString(S, SINHVIEN->Faculty, 28);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.TextBirthday) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->BirthDay, 24);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.TextEmail) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->Email, 12);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.TextHobby1) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->Hobby1, 15);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.TextHobby2) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->Hobby2, 15);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.Description) != NULL)
+			{
+				InsertSubString(S, SINHVIEN->Describe, 34);
+				fputws(S, FileOut); continue;
+			}
+			if (wcsstr(S, html.Title1) != NULL)
+			{
+				wchar_t s[24] = L"Tên sinh viên thuc hiên";
+				InsertSubString(S, s, 11);
+				fputws(S, FileOut); continue;
+			}
 
+			fputws(S, FileOut);
+		}
+		fwprintf(FileOut, L"%ls \n", html.html);
+	}
 }
 int main()
 {
@@ -60,12 +174,12 @@ int main()
 	}
 	ReadFileCSV(FileIn, SINHVIEN, n);
 	fclose(FileIn);
-/*	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 10; i++)
 	{
-		wprintf(L"%ls \t %ls \t %ls \t %d \t %ls \t %ls \t %ls \t %ls \t %ls\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1,SINHVIEN[i].Hobby2);
-	}*/
+		wprintf(L"%ls \t %ls \t %ls \t %d \t %ls \t %ls \t %ls \t %ls \t %ls \t %ls\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1,SINHVIEN[i].Hobby2);
+	}
 	FILE *FileTemplate;
-	FileTemplate = fopen("Template.html", "r");
+	FileTemplate = fopen("Template.txt", "r");
 	if (!FileTemplate)
 	{
 		printf("Khong the tim thay file template\n");
