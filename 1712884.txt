@@ -6,7 +6,7 @@
 #include <malloc.h>
 #include <string.h>
 
-struct THONGTINSINHVIEN
+struct THONGTINSINHVIEN  //Khao báo kiểu struct THONGTINSINHVIEN
 {
 	wchar_t ID[11];
 	wchar_t Name[31];
@@ -16,11 +16,11 @@ struct THONGTINSINHVIEN
 	wchar_t Email[31];
 	wchar_t Image[31];
 	wchar_t Describe[1001];
-	wchar_t Hobby1[31];
-	wchar_t Hobby2[31];
+	wchar_t Hobby1[101];
+	wchar_t Hobby2[101];
 };
 
-struct HTML  //Khai báo kiểu dữ liệu HTML
+struct HTML  //Khai báo kiểu struct HTML
 {
 	wchar_t DOCTYPE[196] = L"<!DOCTYPE html PUBLIC \" -//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\">";
 	wchar_t html[8] = L"</html>";
@@ -40,7 +40,14 @@ struct HTML  //Khai báo kiểu dữ liệu HTML
 	wchar_t Title1[8] = L"MSSV - ";
 };
 
-void InsertSubString(wchar_t *str, wchar_t *substr, int startPos)  //Chèn chuổi con vào chuổi cha
+void InsertSubString(wchar_t*, wchar_t*, int);
+void ReadFileCSV(FILE*, THONGTINSINHVIEN *&, int);
+void FixHobby2(wchar_t *);
+void CreateFileName(wchar_t *, wchar_t *);
+void ReadAndWriteHTML(FILE *, THONGTINSINHVIEN *&, HTML);
+
+/*Chèn chuổi con vào chuổi cha*/
+void InsertSubString(wchar_t *str, wchar_t *substr, int startPos)  
 {
 	int length = wcslen(str);
 	int sublength = wcslen(substr);
@@ -60,6 +67,7 @@ void InsertSubString(wchar_t *str, wchar_t *substr, int startPos)  //Chèn chu�
 	else wcscpy(str + startPos, substr);
 }
 
+/*Đọc file CSV*/
 void ReadFileCSV(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int n)  //Đọc FILE CSV
 {
 	fseek(FileIn, 3L, 0);
@@ -69,12 +77,15 @@ void ReadFileCSV(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int n)  //Đọc FIL
 		fseek(FileIn, 1L, SEEK_CUR);
 		fwscanf(FileIn, L"%d", &SINHVIEN[i].SchoolYear);
 		fseek(FileIn, 1L, SEEK_CUR);
-		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,],%[^,]", SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image,SINHVIEN[i].Describe,SINHVIEN[i].Hobby1);
+		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,]", SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image,SINHVIEN[i].Describe);
 		fseek(FileIn, 2L, SEEK_CUR);
-		fgetws(SINHVIEN[i].Hobby2, 31, FileIn);
+		fwscanf(FileIn, L"%[^\"]", SINHVIEN[i].Hobby1);
+		fseek(FileIn, 3L, SEEK_CUR);
+		fgetws(SINHVIEN[i].Hobby2, 101, FileIn);
 	}
 }
 
+/*Sửa lỗi chuỗi ký tự chứa Hobby2*/
 void FixHobby2(wchar_t *HOBBY2)
 {
 	int length = wcslen(HOBBY2);
@@ -82,6 +93,7 @@ void FixHobby2(wchar_t *HOBBY2)
 	*(HOBBY2 + length - 2) = *xoa;
 }
 
+/*Tạo tên file html cho mỗi sinh viên*/
 void CreateFileName(wchar_t *FileName,wchar_t *SINHVIEN)
 {
 	wchar_t _html[6] = L".html";
@@ -98,13 +110,14 @@ void CreateFileName(wchar_t *FileName,wchar_t *SINHVIEN)
 		}
 }
 
+/*Đọc thông tin sinh viên và ghi vào file html cho mỗi sinh viên*/
 void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN,HTML html)  //ĐỌC và GHI FILE HTML
 {
 	wchar_t filename[13];
 	for (int i = 0; i < 10; i++)
 	{
 		CreateFileName(filename, SINHVIEN[i].ID);
-		wprintf(L"%ls\n", filename);
+//		wprintf(L"%ls\n", filename);
 		FILE *FileOut;
 		//FILE* fout = _wfopen(L"userinfo-c.txt", L"w, ccs=UTF-8");
 		FileOut = _wfopen(filename, L"w, ccs=UTF-8");
@@ -116,13 +129,18 @@ void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN,HTML html)
 			fgetws(S, 1001, FileTemplate);
 			if (wcsstr(S, html.Title) != NULL)
 			{
-				InsertSubString(S, SINHVIEN[i].Name, 9);
+				wchar_t TitleName[101] = L"HCMUS - ";
+				wcscat(TitleName, SINHVIEN[i].Name);
+				InsertSubString(S, TitleName, 9);
 				fputws(S, FileOut); continue;
 			}
 			if (wcsstr(S, html.FullName) != NULL)
 			{
-				_wcsupr(SINHVIEN[i].Name);
+				wchar_t Space[4] = L" - ";
+				int length = wcslen(SINHVIEN[i].Name);
 				InsertSubString(S, SINHVIEN[i].Name, 33);
+				InsertSubString(S, Space, 33 + length);
+				InsertSubString(S, SINHVIEN[i].ID, 36 + length);
 				fputws(S, FileOut); continue;
 			}
 			if (wcsstr(S, html.Department) != NULL)
@@ -145,7 +163,6 @@ void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN,HTML html)
 			}
 			if (wcsstr(S, html.TextName) != NULL)
 			{
-				_wcslwr(SINHVIEN[i].Name);
 				InsertSubString(S, SINHVIEN[i].Name, 23);
 				fputws(S, FileOut); continue;
 			}
@@ -200,6 +217,7 @@ void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN,HTML html)
 	}
 
 }
+
 int wmain(int argc, wchar_t *argv[])
 {
 	_setmode(_fileno(stdout), _O_U8TEXT);
@@ -229,15 +247,11 @@ int wmain(int argc, wchar_t *argv[])
 	}
 	ReadAndWriteHTML(FileTemplate, SINHVIEN, html);
 	fclose(FileTemplate);
-
-/*	FILE *FileOut;
-	FileOut = fopen("FileOut.html", "w");
-	for (int i = 0; i < 10; i++)
+	if (SINHVIEN != NULL)
 	{
-		fwprintf(FileOut,L"%ls \t %ls \t %ls \t %d \t %ls \t %ls \t %ls \t %ls \t %ls\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1, SINHVIEN[i].Hobby2);
-		fwprintf(FileOut, L"\n");
+		delete[] SINHVIEN;
 	}
-	fclose(FileOut);*/
+
 	_getch();
 	return 0;
 }
