@@ -11,7 +11,7 @@ struct THONGTINSINHVIEN  //Khao báo kiểu struct THONGTINSINHVIEN
 	wchar_t ID[11];
 	wchar_t Name[31];
 	wchar_t Faculty[31];
-	int SchoolYear;
+	int SchoolYear = NULL;
 	wchar_t BirthDay[11];
 	wchar_t Email[31];
 	wchar_t Image[31];
@@ -48,16 +48,57 @@ struct HTML  //Khai báo kiểu struct HTML
 	wchar_t NumberPhone[20] = L"<li>Số điện thoại: ";
 };
 
+void TachThongTinKieuChuoi(FILE*, wchar_t);
+void TachThongTinKieuSoNguyen(FILE*, int);
 int CountLineCSV(FILE);
 void InsertSubString(wchar_t*, wchar_t*, int);
 void ReadFileCSV(FILE*, THONGTINSINHVIEN *&, int);
-void FixHobby2(wchar_t *);
 void DeleteTab(wchar_t *);
 void CreateFileName(wchar_t *, wchar_t *);
 void CreateNickName(wchar_t *, wchar_t *);
 void CreateNumberphone(wchar_t *, wchar_t *);
 bool KiemTraHopLe(wchar_t *, wchar_t *);
 void ReadAndWriteHTML(FILE *, THONGTINSINHVIEN *&, HTML);
+
+/*Tách thông tin sinh viên kiểu chuổi*/
+void TachThongTinKieuChuoi(FILE *FileIn, wchar_t *THONGTIN)
+{
+	wchar_t ch1 = fgetwc(FileIn);
+	if (ch1 != L',')
+	{
+		if (ch1 != L'\"')  //TH1: thông tin 1,thông tin 2 hoặc thông tin 1,"thông tin 2"
+		{
+			fseek(FileIn, -1L, SEEK_CUR);
+			fwscanf(FileIn, L"%[^,]", THONGTIN);
+		}
+		else  //TH2: "thông tin 1",thông tin 2 hoặc "thông tin 1","thông tin 2"
+		{
+			fwscanf(FileIn, L"%[^\"]", THONGTIN);
+			fseek(FileIn, 1L, SEEK_CUR);
+		}
+	}
+	else
+	{
+		wchar_t ch2 = fgetwc(FileIn);
+		if (ch2 == L'\"')  //TH3: ,"thông tin 1",thông tin 2 hoặc ,"thông tin 1","thông tin 2"
+		{
+			fwscanf(FileIn, L"%[^\"]", THONGTIN);
+			fseek(FileIn, 1L, SEEK_CUR);
+		}
+		else //TH4: ,thông tin 1, thông tin 2 hoặc ,thông tin 1,"thông tin 2"
+		{
+			fseek(FileIn, -1L, SEEK_CUR);
+			fwscanf(FileIn, L"%[^,]", THONGTIN);
+		}
+	}
+}
+
+/*Tách thông tin sinh viên kiểu số nguyên*/
+void TachThongTinKieuSoNguyen(FILE *FileIn, int *THONGTIN)
+{
+	fseek(FileIn, 1L, SEEK_CUR);
+	fwscanf(FileIn, L"%ld", &*THONGTIN);
+}
 
 /*Đếm số sinh viên có trong File CSV (Tương ứng với số dòng)*/
 int CountLineCSV(FILE *&FileIn)
@@ -103,24 +144,18 @@ void ReadFileCSV(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int CountStudent)  /
 	fseek(FileIn, 3L, 0);
 	for (int i = 0; i < CountStudent; i++)
 	{
-		fwscanf(FileIn, L"%[^,],%[^,],%[^,]", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty);
-		fseek(FileIn, 1L, SEEK_CUR);
-		fwscanf(FileIn, L"%d", &SINHVIEN[i].SchoolYear);
-		fseek(FileIn, 1L, SEEK_CUR);
-		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,]", SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image,SINHVIEN[i].Describe);
-		fseek(FileIn, 2L, SEEK_CUR);
-		fwscanf(FileIn, L"%[^\"]", SINHVIEN[i].Hobby1);
-		fseek(FileIn, 3L, SEEK_CUR);
-		fgetws(SINHVIEN[i].Hobby2, 101, FileIn);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].ID);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].Name);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].Faculty);
+			TachThongTinKieuSoNguyen(FileIn, &SINHVIEN[i].SchoolYear);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].BirthDay);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].Email);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].Image);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].Describe);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].Hobby1);
+		TachThongTinKieuChuoi(FileIn, SINHVIEN[i].Hobby2);
+		fseek(FileIn, 2L, SEEK_CUR);  //Bỏ qua ký tự xuống dòng
 	}
-}
-
-/*Sửa lỗi chuỗi ký tự chứa Hobby2*/
-void FixHobby2(wchar_t *HOBBY2)
-{
-	int length = wcslen(HOBBY2);
-	wchar_t xoa[2] = L".";
-	*(HOBBY2 + length - 2) = *xoa;
 }
 
 /*Xóa các tab trong File*/
@@ -321,7 +356,6 @@ void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN, HTML html
 			if (wcsstr(S, html.TextHobby2) != NULL)
 			{
 				int LengthTextHobby2 = wcslen(html.TextHobby2);
-				FixHobby2(SINHVIEN[i].Hobby2);
 				InsertSubString(S, SINHVIEN[i].Hobby2, LengthTextHobby2);
 				fputws(S, FileOut);
 				continue;
@@ -373,7 +407,7 @@ int wmain(int argc, wchar_t *argv[])
 	for (int i = 0; i < CountSudent; i++)  //Xuất thông tin từng sinh viên ra mà hình console
 	{
 		wprintf(L"Thông tin sinh viên %ld:\n", i + 1);
-		wprintf(L"%ls \n %ls \n %ls \n %d \n %ls \n %ls \n %ls \n %ls \n %ls \n %ls\n\n\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1, SINHVIEN[i].Hobby2);
+		wprintf(L"%ls \n %ls \n %ls \n %ld \n %ls \n %ls \n %ls \n %ls \n %ls \n %ls\n\n\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1, SINHVIEN[i].Hobby2);
 	}
 
 	/* Thêm thông tin sinh viên(nhập từ bàn phím*/
