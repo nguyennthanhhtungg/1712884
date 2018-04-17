@@ -56,6 +56,7 @@ void DeleteTab(wchar_t *);
 void CreateFileName(wchar_t *, wchar_t *);
 void CreateNickName(wchar_t *, wchar_t *);
 void CreateNumberphone(wchar_t *, wchar_t *);
+bool KiemTraHopLe(wchar_t *, wchar_t *);
 void ReadAndWriteHTML(FILE *, THONGTINSINHVIEN *&, HTML);
 
 /*Đếm số sinh viên có trong File CSV (Tương ứng với số dòng)*/
@@ -76,7 +77,7 @@ int CountLineCSV(FILE *&FileIn)
 }
 
 /*Chèn chuổi con vào chuổi cha*/
-void InsertSubString(wchar_t *str, wchar_t *substr, int startPos)
+void InsertSubString(wchar_t *str, wchar_t *substr, int startPos)  
 {
 	int length = wcslen(str);
 	int sublength = wcslen(substr);
@@ -106,7 +107,7 @@ void ReadFileCSV(FILE *FileIn, THONGTINSINHVIEN *&SINHVIEN, int CountStudent)  /
 		fseek(FileIn, 1L, SEEK_CUR);
 		fwscanf(FileIn, L"%d", &SINHVIEN[i].SchoolYear);
 		fseek(FileIn, 1L, SEEK_CUR);
-		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,]", SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image, SINHVIEN[i].Describe);
+		fwscanf(FileIn, L"%[^,],%[^,],%[^,],%[^,]", SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image,SINHVIEN[i].Describe);
 		fseek(FileIn, 2L, SEEK_CUR);
 		fwscanf(FileIn, L"%[^\"]", SINHVIEN[i].Hobby1);
 		fseek(FileIn, 3L, SEEK_CUR);
@@ -174,6 +175,29 @@ void CreateNumberPhone(wchar_t *NumberPhone, wchar_t *TabNumberPhone)
 	wscanf(L"%ls", SĐT);
 	wcscat(NumberPhone, SĐT);
 	wcscat(NumberPhone, div);
+}
+
+/*Kiểm tra tính hợp lệ của việc nhập MSSV*/
+bool KiemTraHopLe(wchar_t *ID, wchar_t *MSSV)
+{
+	int length1 = wcslen(ID);
+	int length2 = wcslen(MSSV);
+	if (length1 != length2)
+	{
+		return false;
+	}
+	else
+	{
+		for (int i = 0; i < length1; i++)
+		{
+			if (*(ID + i) != *(MSSV + i))
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+
 }
 
 /*Đọc thông tin sinh viên và ghi vào file html cho mỗi sinh viên*/
@@ -352,6 +376,7 @@ int wmain(int argc, wchar_t *argv[])
 		wprintf(L"%ls \n %ls \n %ls \n %d \n %ls \n %ls \n %ls \n %ls \n %ls \n %ls\n\n\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1, SINHVIEN[i].Hobby2);
 	}
 
+	/* Thêm thông tin sinh viên(nhập từ bàn phím*/
 	int choose;
 	wprintf(L"Bạn có muốn thêm thông tin biệt danh hay số điện thoại của sinh viên hay không.? Chọn 1 (Đồng ý) or 0(Không đồng ý)\n");
 	while (1)
@@ -359,16 +384,37 @@ int wmain(int argc, wchar_t *argv[])
 		wscanf(L"%ld", &choose);
 		if (choose == 1)
 		{
-			wchar_t MSSV[11];
+			wchar_t MSSV[11] = { NULL };
 			wprintf(L"Nhập mã số sinh viên cần thêm thông tin MSSV: \n");
-			wprintf(L"(*Lưu ý: Nhập sai MSSV của sinh viên, khi thêm thông tin sẽ không có giá trị.!!)\n");
+			wprintf(L"(*Lưu ý: Nhập sai MSSV của sinh viên, thì chương trình yêu cầu nhập lại.!!)\n");
 			wscanf(L"%ls", &MSSV);
+			int chon;
+			wprintf(L"Nhập thông tin cần thêm vào:\n");
+			wprintf(L"Nhập 1 ==> Thêm biệt danh sinh viên.\n");
+			wprintf(L"Nhập 2 ==> Thêm số điện thoại sinh viên.\n");
+			wprintf(L"Nhập 0 ==> Chọn tất cả.\n");
+			wscanf(L"%ld", &chon);
 			for (int i = 0; i < CountSudent; i++)
 			{
-				if (wcsstr(SINHVIEN[i].ID, MSSV) != NULL)
+				if (KiemTraHopLe(SINHVIEN[i].ID, MSSV) == true)
 				{
-					CreateNickName(SINHVIEN[i].NickName, html.NickName);
-					CreateNumberPhone(SINHVIEN[i].NumberPhone, html.NumberPhone); break;
+					if (chon == 1)
+					{
+						CreateNickName(SINHVIEN[i].NickName, html.NickName); break;
+					}
+					else if (chon == 2)
+					{
+						CreateNumberPhone(SINHVIEN[i].NumberPhone, html.NumberPhone); break;
+					}
+					else if (chon == 0)
+					{
+						CreateNickName(SINHVIEN[i].NickName, html.NickName);
+						CreateNumberPhone(SINHVIEN[i].NumberPhone, html.NumberPhone); break;
+					}
+					else
+					{
+						wprintf(L"Kết quả chọn không hợp lệ.Vui lòng chọn lại sinh viên khác.Tks.!!\n"); break;
+					}
 				}
 			}
 		}
