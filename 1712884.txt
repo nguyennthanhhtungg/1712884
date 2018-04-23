@@ -59,6 +59,7 @@ void CreateNickName(wchar_t *, wchar_t *);
 void CreateNumberphone(wchar_t *, wchar_t *);
 bool KiemTraHopLe(wchar_t *, wchar_t *);
 void ReadAndWriteHTML(FILE *, THONGTINSINHVIEN *&, HTML);
+void ChooseInformation(int *);
 
 /*Tách thông tin sinh viên kiểu chuổi*/
 void TachThongTinKieuChuoi(FILE *FileIn, wchar_t *THONGTIN)
@@ -235,8 +236,62 @@ bool KiemTraHopLe(wchar_t *ID, wchar_t *MSSV)
 
 }
 
+/*Lựa chọn hiển thị thông tin trong Profile Page.!!*/
+void ChooseInformation(int *Choose)
+{
+	wprintf(L"Chọn 1 ==> MSSV.\n");
+	wprintf(L"Chọn 2 ==> Họ và Tên.\n");
+	wprintf(L"Chọn 3 ==> Khoa.\n");
+	wprintf(L"Chọn 4 ==> Khóa.\n");
+	wprintf(L"Chọn 5 ==> Ngày sinh.\n");
+	wprintf(L"Chọn 6 ==> Email cá nhân.\n");
+	wprintf(L"Chọn 7 ==> Hình ảnh cá nhân.\n");
+	wprintf(L"Chọn 8 ==> Mô tả bản thân.\n");
+	wprintf(L"Chọn 9 ==> Sở thích 1.\n");
+	wprintf(L"Chọn 10 ==> Sở thích 2.\n");
+	wprintf(L"Chọn -1 ==> Chọn tất cả thông tin sinh viên.\n");
+	wprintf(L"Chọn 0 ==> Thoát lựa chọn.\n");
+	int choose;
+	while (1)
+	{
+		wscanf(L"%ld", &choose);
+		switch (choose)
+		{
+		case 1: *(Choose + 0) = 1; break;
+		case 2: *(Choose + 1) = 2; break;
+		case 3: *(Choose + 2) = 3; break;
+		case 4: *(Choose + 3) = 4; break;
+		case 5: *(Choose + 4) = 5; break;
+		case 6: *(Choose + 5) = 6; break;
+		case 7: *(Choose + 6) = 7; break;
+		case 8: *(Choose + 7) = 8; break;
+		case 9: *(Choose + 8) = 9; break;
+		case 10: *(Choose + 9) = 10; break;
+		case -1:
+		   {
+			   for (int i = 0; i < 10; i++)
+			   {
+				   *(Choose + i) = i + 1;
+			   }
+			   break;
+		   }
+		default:
+		   {
+			       if (choose == 0) break;
+			   wprintf(L"Lựa chọn không phù hợp.Vui lòng chọn lại.Tks...!!\n");
+			       break;
+		   }
+		}
+		if (choose == 0 || choose == -1)
+		{
+			wprintf(L"Thực hiện lựa chọn Profile Page thành công.!!\n");
+			break;
+		}
+	}
+}
+
 /*Đọc thông tin sinh viên và ghi vào file html cho mỗi sinh viên*/
-void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN, HTML html, int CountStudent)  //ĐỌC và GHI FILE HTML
+void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN, HTML html, int CountStudent,int *Choose)  //ĐỌC và GHI FILE HTML
 {
 	wchar_t filename[21] = L"Website/";
 	for (int i = 0; i < CountStudent; i++)
@@ -264,14 +319,14 @@ void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN, HTML html
 			}
 			if (wcsstr(S, html.FullName) != NULL)
 			{
-				int LengthFullName = wcslen(html.FullName);
-				wchar_t Space[4] = L" - ";
-				int LengthSpace = wcslen(Space);
-				int length = wcslen(SINHVIEN[i].Name);
-				InsertSubString(S, SINHVIEN[i].Name, LengthFullName);
-				InsertSubString(S, Space, LengthFullName + length);
-				InsertSubString(S, SINHVIEN[i].ID, LengthFullName + length + LengthSpace);
-				fputws(S, FileOut);
+					int LengthFullName = wcslen(html.FullName);
+					wchar_t Space[4] = L" - ";
+					int LengthSpace = wcslen(Space);
+					int length = wcslen(SINHVIEN[i].Name);
+					InsertSubString(S, SINHVIEN[i].Name, LengthFullName);
+					InsertSubString(S, Space, LengthFullName + length);
+					InsertSubString(S, SINHVIEN[i].ID, LengthFullName + length + LengthSpace);
+					fputws(S, FileOut);
 
 				/*Chèn thông tin Biệt danh(nếu có)*/
 				if (wcslen(SINHVIEN[i].NickName) > 0)
@@ -282,62 +337,93 @@ void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN, HTML html
 			}
 			if (wcsstr(S, html.Department) != NULL)
 			{
-				int LengthDepartment = wcslen(html.Department);
-				_wcsupr(SINHVIEN[i].Faculty);
-				InsertSubString(S, SINHVIEN[i].Faculty, LengthDepartment);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 2) == 3)
+				{
+					int LengthDepartment = wcslen(html.Department);
+					_wcsupr(SINHVIEN[i].Faculty);
+					InsertSubString(S, SINHVIEN[i].Faculty, LengthDepartment);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.Phone) != NULL)
 			{
-				int LengthPhone = wcslen(html.Phone);
-				InsertSubString(S, SINHVIEN[i].Email, LengthPhone);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 5) == 6)
+				{
+					int LengthPhone = wcslen(html.Phone);
+					InsertSubString(S, SINHVIEN[i].Email, LengthPhone);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.HinhcanhanKhung) != NULL)
 			{
-				int LengthHinhcanhanKhung = wcslen(html.HinhcanhanKhung);
-				wchar_t Image[19] = L"Images/";
-				wcscat(Image, SINHVIEN[i].Image);
-				InsertSubString(S, Image, LengthHinhcanhanKhung);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 6) == 7)
+				{
+					int LengthHinhcanhanKhung = wcslen(html.HinhcanhanKhung);
+					wchar_t Image[19] = L"Images/";
+					wcscat(Image, SINHVIEN[i].Image);
+					InsertSubString(S, Image, LengthHinhcanhanKhung);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.TextName) != NULL)
 			{
-				int LengthTextName = wcslen(html.TextName);
-				InsertSubString(S, SINHVIEN[i].Name, LengthTextName);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 1) == 2)
+				{
+					int LengthTextName = wcslen(html.TextName);
+					InsertSubString(S, SINHVIEN[i].Name, LengthTextName);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.TextID) != NULL)
 			{
-				int LengthTextID = wcslen(html.TextID);
-				InsertSubString(S, SINHVIEN[i].ID, LengthTextID);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 0) == 1)
+				{
+					int LengthTextID = wcslen(html.TextID);
+					InsertSubString(S, SINHVIEN[i].ID, LengthTextID);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.TextFaculty) != NULL)
 			{
-				int LengthTextFaculty = wcslen(html.TextFaculty);
-				_wcslwr(SINHVIEN[i].Faculty);
-				InsertSubString(S, SINHVIEN[i].Faculty, LengthTextFaculty);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 2) == 3)
+				{
+					int LengthTextFaculty = wcslen(html.TextFaculty);
+					_wcslwr(SINHVIEN[i].Faculty);
+					InsertSubString(S, SINHVIEN[i].Faculty, LengthTextFaculty);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.TextBirthday) != NULL)
 			{
-				int LengthTextBirthday = wcslen(html.TextBirthday);
-				InsertSubString(S, SINHVIEN[i].BirthDay, LengthTextBirthday);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 4) == 5)
+				{
+					int LengthTextBirthday = wcslen(html.TextBirthday);
+					InsertSubString(S, SINHVIEN[i].BirthDay, LengthTextBirthday);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.TextEmail) != NULL)
 			{
-				int LengthTextEmail = wcslen(html.TextEmail);
-				InsertSubString(S, SINHVIEN[i].Email, LengthTextEmail);
-				fputws(S, FileOut);
+				if (*(Choose + 5) == 6)
+				{
+					int LengthTextEmail = wcslen(html.TextEmail);
+					InsertSubString(S, SINHVIEN[i].Email, LengthTextEmail);
+					fputws(S, FileOut);
+				}
 
 				/*Chèn thông tin SĐT(nếu có)*/
 				if (wcslen(SINHVIEN[i].NumberPhone) > 0)
@@ -348,24 +434,37 @@ void ReadAndWriteHTML(FILE *FileTemplate, THONGTINSINHVIEN *&SINHVIEN, HTML html
 			}
 			if (wcsstr(S, html.TextHobby1) != NULL)
 			{
-				int LengthTextHobby1 = wcslen(html.TextHobby1);
-				InsertSubString(S, SINHVIEN[i].Hobby1, LengthTextHobby1);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 8) == 9)
+				{
+					int LengthTextHobby1 = wcslen(html.TextHobby1);
+					InsertSubString(S, SINHVIEN[i].Hobby1, LengthTextHobby1);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.TextHobby2) != NULL)
 			{
-				int LengthTextHobby2 = wcslen(html.TextHobby2);
-				InsertSubString(S, SINHVIEN[i].Hobby2, LengthTextHobby2);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 9) == 10)
+				{
+					int LengthTextHobby2 = wcslen(html.TextHobby2);
+					InsertSubString(S, SINHVIEN[i].Hobby2, LengthTextHobby2);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.Description) != NULL)
 			{
-				int LengthDescription = wcslen(html.Description);
-				InsertSubString(S, SINHVIEN[i].Describe, LengthDescription);
-				fputws(S, FileOut);
-				continue;
+				if (*(Choose + 7) == 8)
+				{
+					if (*(Choose + 7) == L'1') break;
+					int LengthDescription = wcslen(html.Description);
+					InsertSubString(S, SINHVIEN[i].Describe, LengthDescription);
+					fputws(S, FileOut);
+					continue;
+				}
+				else continue;
 			}
 			if (wcsstr(S, html.Title1) != NULL)
 			{
@@ -407,7 +506,16 @@ int wmain(int argc, wchar_t *argv[])
 	for (int i = 0; i < CountSudent; i++)  //Xuất thông tin từng sinh viên ra mà hình console
 	{
 		wprintf(L"Thông tin sinh viên %ld:\n", i + 1);
-		wprintf(L"%ls \n %ls \n %ls \n %ld \n %ls \n %ls \n %ls \n %ls \n %ls \n %ls\n\n\n", SINHVIEN[i].ID, SINHVIEN[i].Name, SINHVIEN[i].Faculty, SINHVIEN[i].SchoolYear, SINHVIEN[i].BirthDay, SINHVIEN[i].Email, SINHVIEN[i].Image, SINHVIEN[i].Describe, SINHVIEN[i].Hobby1, SINHVIEN[i].Hobby2);
+		wprintf(L"MSSV: %ls \n", SINHVIEN[i].ID);
+		wprintf(L"Họ và Tên: %ls \n", SINHVIEN[i].Name);
+		wprintf(L"Khoa: %ls \n", SINHVIEN[i].Faculty);
+		wprintf(L"Khóa: %ld \n", SINHVIEN[i].SchoolYear);
+		wprintf(L"Ngày sinh: %ls \n", SINHVIEN[i].BirthDay);
+		wprintf(L"Email cá nhân: %ls \n", SINHVIEN[i].Email);
+		wprintf(L"Hình ảnh cá nhân: %ls \n", SINHVIEN[i].Image);
+		wprintf(L"Mô tả bản thân: %ls \n", SINHVIEN[i].Describe);
+		wprintf(L"Sở thích 1: %ls \n", SINHVIEN[i].Hobby1);
+		wprintf(L"Sở thích 2: %ls \n\n\n", SINHVIEN[i].Hobby2);
 	}
 
 	/* Thêm thông tin sinh viên(nhập từ bàn phím*/
@@ -454,21 +562,25 @@ int wmain(int argc, wchar_t *argv[])
 		}
 		else
 		{
-			wprintf(L"Bạn không tiếp tục thêm thông tin sinh viên...!!\n");
+			wprintf(L"Bạn không tiếp tục thêm thông tin sinh viên...!!\n\n\n");
 			break;
 		}
 		wprintf(L"\n\n\n");
 		wprintf(L"Nhập 1 ==> Tiếp tục thêm thông tin biệt danh hay số điện thoại của sinh viên khác.\n");
 		wprintf(L"Nhập 0 ==> Để thoát.\n");
 	}
+	wprintf(L"Lựa chọn hiển thị thông tin trong Profile Page:\n");
+	int Choose[10];
+	ChooseInformation(Choose);
 	FILE *FileTemplate;
 	FileTemplate = _wfopen(L"Template.html", L"r,ccs=UTF-8");  //Đọc File Template (File mẫu để đọc)
 	if (!FileTemplate)
 	{
 		printf("Khong the tim thay file template\n");
 	}
-	ReadAndWriteHTML(FileTemplate, SINHVIEN, html, CountSudent);
+	ReadAndWriteHTML(FileTemplate, SINHVIEN, html, CountSudent, Choose);
 	fclose(FileTemplate);
+
 	if (SINHVIEN != NULL)
 	{
 		delete[] SINHVIEN;
